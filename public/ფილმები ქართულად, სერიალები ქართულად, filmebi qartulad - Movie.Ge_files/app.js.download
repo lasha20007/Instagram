@@ -1,0 +1,1053 @@
+
+function open_video(video_id,referar_url)
+{
+	
+	var request = $.ajax({ 
+   		url: '/home/video_modal/'+video_id, 
+   		type: 'get', 
+   		dataType: 'html' 
+ 	});
+	
+	$('#video_modal').show().html('<div>Loading...</div>');
+	
+	request.done( function ( data ) {
+		window.history.replaceState({state: 'new'}, '', '/video/'+video_id);
+ 		$('#video_modal').html( data );
+ 	});
+	
+	request.fail( function ( jqXHR, textStatus) {
+ 		console.log( 'Sorry: ' + textStatus );
+ 	});
+	
+	$('body').css({'overflow':'hidden'});
+	
+}
+
+$( "#video_modal" ).on( "click", "#close", function() {
+	//$( this ).toggleClass( "chosen" );
+	$('body').css({'overflow':'visible'});
+	$('#video_modal').hide();
+	$('#video_modal').html('');
+	window.history.replaceState({state: 'new'}, '', '/videos');
+});
+
+
+
+$('.popap_contact').click(function(e) {
+	e.preventDefault();
+	var DataIDPoPup = $(this).data('id');
+	var PoPup = $('#' + DataIDPoPup).show();
+});
+
+$('#ContactPopup .closeBtn').click(function(event) {
+	$('#ContactPopup').hide();
+});
+
+
+
+$('#triler_popup').click(function(event) {
+	event.preventDefault();
+	
+	var url		= $(this).data('url');
+	var title	= $(this).data('title');
+	
+	$('#notify').html(
+		'<div class="video-overlay justify-content-center align-items-center" style="display: block;">'+
+			'<div class="video-overlay-cont">'+
+				'<div id="outside_close"></div>'+
+				'<div class="video-overlay-in overflow-hidden">'+
+					'<div class="problem-head d-flex position-relative">'+
+						'<div class="closeBtn"><i class="fas fa-times"></i></div>'+
+						'<div class="d-flex flex-column"><h1 class="arial-caps video-overlay-title text-main mb-1">'+ title +'</h1></div>'+
+					'</div>'+
+					'<div class="problem-body">'+
+						'<iframe src="'+ url +'" id="video_cinema" width="100%" height="355px" frameborder="0"></iframe>'+
+					'</div>'+
+				'</div>'+
+			'</div>'+
+		'</div>'
+	);
+});
+
+
+
+$('.create-new-btn').click(function(e) {
+	e.preventDefault();
+	
+	$('#notify').html(
+		'<div class="collection-pop justify-content-center align-items-center show">'+
+			'<div id="outside_close"></div>'+
+			'<div class="collection-pop-in rounded-10 position-absolute">'+
+				'<div class="popup-head"><div class="title">ახალი კოლექცია</div><div class="closeBtn"><i class="fas fa-times"></i></div></div>'+
+				'<div class="popup-body">'+
+					'<form class="d-flex flex-column align-items-end mt-3" id="addCollection" method="post">'+
+						'<div class="flex-grow-1"></div>'+
+						'<input id="collName" class="authorization-input mb-4 font-size-14 arial text-gray rounded-10 w-100" placeholder="კოლექციის სათაური" name="name">'+
+						'<div class="coll-pop-btns">'+
+							'<button class="save-btn btn btn-primary rounded-38 arial font-size-14 text-main" title="დამახსოვრება" type="submit">დამახსოვრება</button>'+
+						'</div>'+
+						'<div class="flex-grow-1"></div>'+
+					'</form>'+
+				'</div>'+
+			'</div>'+
+		'</div>'
+	);
+	
+	
+});
+
+
+
+$(document).ready(function() {
+    $('.PublishBtn').click(function(event) {
+        event.stopPropagation();
+        $(".selectStatus").toggle();
+    });
+    $(".selectStatus").on("click", function(event) {
+        event.stopPropagation();
+    });
+});
+
+$(document).on("click", function() {
+    $(".selectStatus").hide();
+});
+
+
+$('.edit-collection-publish li').click(function(event) {
+	var coll_id = $(this).data('id');
+	var select_id = $(this).data('select');
+	var $_col_status = $(this).parent().parent().find('.coll_status');
+	
+	$.post('/profile/collection_actions',{  id : coll_id ,  status: select_id, action:'status' }, function( response ) {
+		
+		if( response.id==0 ){
+			$_col_status.html('<i class="fa fa-lock" aria-hidden="true"></i> მარტო ჩემთვის <i class="fa fa-angle-down"></i>');
+			Notify(response.msg,'danger');
+		}
+		if(response.id==1){
+			$_col_status.html('<i class="fa fa-globe" aria-hidden="true"></i> საჯარო <i class="fa fa-angle-down"></i></span>');
+			Notify(response.msg);
+		}
+		$(".selectStatus").hide();
+	});
+	
+});
+
+
+function deleteCollection(id) {
+	
+    if (confirm("ნამდვილად გსურთ კოლექციის წაშლა?")) {
+		
+		$.ajax({
+			url: "/profile/collection_actions",
+			type: 'POST',
+			dataType: 'json',
+			data: {id:id,action:'delete'},
+		})
+		.done(function(results) {
+			
+			if(results.status==true){
+				Notify( results.msg );
+				setTimeout(function(){ location.reload(); },1000);
+			}
+			if(results.errors){
+				Notify( results.errors ,'danger');
+			}
+			
+		});
+		
+    }
+    return false;
+}
+
+$(document).delegate('.collection-pop', 'submit', function(event) {
+	event.preventDefault();
+	
+	var name = $('#collName').val();
+	
+	
+	$.ajax({
+		url: "/profile/collection_actions",
+		type: 'POST',
+		dataType: 'json',
+		data: {name:name},
+	})
+	.done(function(results) {
+		
+		if(results.status==true){
+			Notify( results.msg );
+			setTimeout(function(){ window.location = '/collection/'+results.id; },1000);
+		}
+		if(results.errors){
+			Notify( results.errors ,'danger');
+		}
+		
+	});
+	
+
+});
+
+
+
+
+$('.EditNameCollectionButton').click(function(event) {
+	
+	var coll_id 	= $(this).data('id');
+	var coll_name 	= $(this).data('name');
+	
+	$('#notify').html(
+		'<div class="edit-collection-overlay justify-content-center align-items-center show">'+
+			'<div id="outside_close"></div>'+
+			'<div class="collection-pop-in rounded-10 position-relative">'+
+				'<div class="popup-head"><div class="title">კოლექციის სათაური</div><div class="closeBtn"><i class="fas fa-times"></i></div></div>'+
+				'<div class="popup-body">'+
+					'<form class="d-flex flex-column align-items-end" id="ChangeNameCollection" data-id="'+coll_id+'" method="post">'+
+						'<div class="flex-grow-1"></div>'+
+						'<input class="authorization-input mb-4 font-size-14 arial text-gray rounded-10 w-100" id="collName" placeholder="კოლექციის სათაური" name="name" value="'+coll_name+'">'+
+						'<div class="coll-pop-btns">'+
+							'<button class="save-btn btn btn-primary rounded-38 arial font-size-14 text-main " title="დამახსოვრება" type="submit">დამახსოვრება</button>'+
+						'</div>'+
+						'<div class="flex-grow-1"></div>'+
+					'</form>'+
+				'</div>'+
+			'</div>'+
+		'</div>'
+	);
+	
+	
+	$('#ChangeNameCollection').submit(function(event) {
+		event.preventDefault();
+		
+		var action = 'update_name';
+		var new_name = $('#collName').val();
+
+
+		$.ajax({
+			url: '/profile/collection_actions',
+			type: 'POST',
+			dataType: 'json',
+			data: {id:coll_id,action:action,name:new_name},
+		})
+		.done(function(response) {
+			if(response.status==true){
+				$('#notify').html('');
+				$('.CollectionName').html(response.name);
+				$('.EditNameCollectionButton').data('name',response.name);
+				Notify(response.msg);
+			}else{
+				$('#notify').html('');
+				Notify(response.msg, 'danger');
+				
+			}
+			
+		});
+		
+	});
+});
+
+
+function remove_item($id)
+{
+	return  $('.movie-item[id="'+$id+'"]').remove();
+}
+
+
+
+function deleteItem(action,id,type,item_id) {
+	
+	//alertMsg = '';
+	
+    if (confirm("ნამდვილად გსურთ წაშლა?")) {
+		
+		$.ajax({
+			url: "/profile/collection_actions",
+			type: 'POST',
+			dataType: 'json',
+			data: {action:action,id:id,type:type,item_id:item_id},
+		})
+		.done(function(results) {
+			
+			if(results.status==true){
+				remove_item(item_id);
+				Notify( results.msg );
+			}
+			if(results.errors){
+				Notify( results.errors ,'danger');
+			}
+			
+		});
+		
+    }
+    return false;
+}
+
+
+function del(action,id,type,item_id,alertMsg='ნამდვილად გსურთ წაშლა?') {
+	
+    if (confirm(alertMsg)) {
+		
+		$.ajax({
+			url: "/profile/del",
+			type: 'POST',
+			dataType: 'json',
+			data: {action:action,id:id,type:type,item_id:item_id},
+		})
+		.done(function(results) {
+			
+			if(results.status==true){
+				remove_item(item_id);
+				Notify( results.msg );
+			}
+			if(results.errors){
+				Notify( results.errors ,'danger');
+			}
+			
+		});
+		
+    }
+    return false;
+}
+
+
+
+$('.subscireCollection').click(function(event) {
+	
+	var id 		= $(this).data('id');
+	var action 	= 'subscribe';
+	var _this 	= $(this);
+
+	$.ajax({
+		url: "/profile/collection_actions",
+		type: 'POST',
+		dataType: 'json',
+		data: {action:action,id:id},
+	})
+	.done(function(data) {
+		if (data.status === true){
+			Notify(data.msg);
+			$(_this).addClass('subscribed').html(data.html)
+		}
+		if (data.status === false){
+			Notify(data.msg,'danger');
+			$(_this).removeClass('subscribed').html(data.html)
+		}
+		if (data.errors){
+			Notify(data.errors, 'danger');
+		}
+	})
+	.fail(function(error) {
+		var response = error.responseJSON;
+		if( response.msg ) Notify( response.msg ,'danger');
+	})
+
+});
+
+
+
+
+
+
+
+
+
+
+$('#problem_popup').click(function(e) {
+	e.preventDefault();
+	
+	var id			= $(this).data('id');
+	var type		= $(this).data('type');
+	var year		= $(this).data('year');
+	var title_ge	= $(this).data('title_ge');
+	var title_en	= $(this).data('title_en');
+	var img			= $(this).data('img');
+	
+	$.post("/profile/problem_popup",{id:id,type:type,year:year,img:img,title_ge:title_ge,title_en:title_en}, function( problem_popup ) {
+		$('#notify').html(problem_popup);
+	});
+	
+	
+});
+
+$(document).delegate('#ProblemForm', 'submit', function(event) {
+	event.preventDefault();
+	
+	var data = $(this).serialize();
+	var _this = this;
+	
+	
+	$.ajax({
+		url: "/profile/problem_report",
+		type: 'POST',
+		dataType: 'json',
+		data: data,
+	})
+	.done(function(results) {
+		
+		if(results.status==true){
+			$('.input_el_pop').removeClass('is-invalid');
+			$(_this).html('<h3 class="font-size-18 arial arial-caps text-center error_msg_movie_pop">'+results.message+'</h3>');
+			$('#WarringPopap').children('.problem-overlay-in').css({ 'max-height': '250px' });
+		}
+		if(results.errors){
+			$('.input_el_pop').removeClass('is-invalid');
+			$.each(results.errors, function(index, val) {
+				$('.input_el_pop[name="' + index + '"]').addClass('is-invalid');
+			});
+		}
+		
+	});
+	
+
+});
+
+
+
+$('.popular_filter').click(function(e) {
+	e.preventDefault();
+	var FilterType = $(this).data('type');
+	$('.popular_filter').removeClass('active');
+	$(this).addClass('active');
+	$.ajax({
+		url: '/Api/WebService/popular_movies/'+FilterType,
+		type: 'POST',
+		dataType: 'json',
+		data: {filter: FilterType },
+	}).done(function(data) {
+		if (data.code == 2000) {
+			$('#popular_movie_list').empty();
+			$.each(data.lists.movies.data, function(index, popular_movies) {
+				console.log(popular_movies);
+				
+				images 		= JSON.parse(popular_movies.images);
+				titles 		= JSON.parse(popular_movies.titles);
+				title_en	= titles[0].title;
+				title_ge	= titles[1].title;
+				
+				$('#popular_movie_list').append(
+					'<div class="col-xl-3 col-md-6 col-12 mb-4 position-relative movie-item">'+
+						'<div class="trailer position-relative">'+
+							'<img src="https://static.movie.ge/movies/bg/normal/'+ images.bg +'" class="cover-img rounded-5 lazy_load" alt="'+ title_ge +' / '+ title_en +'">'+
+							'<div class="overlay rounded-5">'+
+								'<a href="/movie/'+ popular_movies.movie_id +'/'+ TitleSlug(title_en) +'" class="w-100 h-100 position-absolute"></a>'+
+								'<div class="imdb">'+
+									'<a href="https://www.imdb.com/title/<?php echo $filter_movies->id; ?>/?ref_=movie.ge" class="t-5" target="_blank">'+ popular_movies.imdb_vote +'</a>'+
+								'</div>'+
+								'<div class="info d-none d-sm-block" title="ინფორმაცია">'+
+									'<svg xmlns="http://www.w3.org/2000/svg" width="8" height="16" viewBox="0 0 8 16"> <g> <g> <path d="M2.53 16c-.92 0-1.595-.522-.95-2.818l1.055-4.074c.184-.652.214-.913 0-.913-.276 0-1.47.45-2.176.895L0 8.385c2.237-1.748 4.81-2.773 5.914-2.773.919 0 1.072 1.017.613 2.583l-1.209 4.282c-.214.756-.122 1.017.092 1.017.276 0 1.18-.314 2.069-.966L8 13.18C5.824 15.216 3.449 16 2.53 16zM6.114 0C7.28 0 7.862.73 7.862 1.566c0 1.044-1.011 2.009-2.33 2.009-1.102 0-1.746-.6-1.715-1.591C3.817 1.148 4.583 0 6.115 0z"></path> </g> </g> </svg>'+
+								'</div>'+
+								'<div class="info-overlay flex-column rounded-5">'+
+									'<div class="arial font-size-14 text-main mb-3"><?php echo $genre_list;?></div>'+
+									'<a href="/movie/'+ popular_movies.movie_id +'/'+ TitleSlug(title_en) +'">'+
+										'<div>'+
+											'<div class="arial-caps text-gray font-size-14">მოკლე აღწერა:</div>'+
+											'<div class="shorter-desc arial font-size-14 text-main">'+ popular_movies.desc +'</div>'+
+										'</div>'+
+									'</a>'+
+								'</div>'+
+							'</div>'+
+						'</div>'+
+						'<div class="row mt-3 no-gutters position-relative">'+
+							'<div class="titles">'+
+								'<a href="/movie/'+ popular_movies.movie_id +'/'+ TitleSlug(title_en) +'">'+
+									'<p class="text-main mb-0 sf-pro-display title">'+ title_en +'</p>'+
+									'<p class="text-main arial title">'+ title_ge +'</p>'+
+								'</a>'+
+							'</div>'+
+							'<button id="items_menu" data-type="<?php echo $filter_movies->type; ?>" data-id="<?php echo $filter_movies->id; ?>" title="მეტი">'+
+								'<i class="fas fa-ellipsis-v"></i>'+
+								'<div id="toogle-menu"></div>'+
+							'</button>'+
+						'</div>'+
+					'</div>'
+				);
+			});
+		}
+	})
+	.fail(function() {
+		console.log("error");
+	})
+	.always(function() {
+		console.log("complete");
+	});
+	
+});
+
+
+
+$('.popular_filter_serial').click(function(e) {
+	e.preventDefault();
+	var FilterType = $(this).data('type');
+	$('.popular_filter_serial').removeClass('active');
+	$(this).addClass('active');
+	$.ajax({
+		url: '/Api/WebService/popular_serials/'+FilterType,
+		type: 'POST',
+		dataType: 'json',
+		data: {filter: FilterType },
+	}).done(function(data) {
+		if (data.code == 2000) {
+			$('#popular_serial_list').empty();
+			$.each(data.lists.movies.data, function(index, popular_serials) {
+				console.log(popular_serials);
+				
+				images 		= JSON.parse(popular_serials.images);
+				titles 		= JSON.parse(popular_serials.titles);
+				title_en	= titles[0].title;
+				title_ge	= titles[1].title;
+				
+				$('#popular_serial_list').append(
+					'<div class="col-xl-3 col-lg-4 col-md-6 mb-4 position-relative serial-item">'+
+						'<div class="card serial serial-content rounded-10">'+
+							'<div class="serial-img position-relative">'+
+								'<img src="https://static.movie.ge/movies/bg/normal/'+ images.bg +'" alt="'+ title_en +'" class="cover-img lazy_load">'+
+								'<div class="overlay rounded-10">'+
+									'<a href="/serial/'+ popular_serials.id +'/'+ TitleSlug(title_en) +'" class="w-100 h-100 position-absolute"></a>'+
+									'<button id="items_menu" class="area-bottom" data-type="serial" data-id="'+ popular_serials.id +'" title="მეტი">'+
+										'<i class="fas fa-ellipsis-v"></i>'+
+										'<div id="toogle-menu"></div>'+
+									'</button>'+
+									'<div class="serial-hover">'+
+										'<a href="/serial/'+ popular_serials.id +'/'+ TitleSlug(title_en) +'" class="d-flex flex-column-reverse flex-grow-1 pb-3">'+
+											'<p class="mb-0 sf-pro-display text-main eng-title">'+ title_en +'</p>'+
+											'<p class="mb-0 arial text-main">'+ title_ge +'</p>'+
+										'</a>'+
+										'<div class="d-flex flex-column-reverse">'+
+										   '<span class="btn btn-primary mb-3 lang-item rounded-5 arial font-size-11 text-main">GEO</span>'+
+										'</div>'+
+									'</div>'+
+								'</div>'+
+							'</div>'+
+							'<div class="card-body">'+
+								'<div class="row align-items-center">'+
+									'<div class="col-8">'+
+										'<p class="arial font-size-14 mb-0">სეზონი 1 <span class="circle">სერია 4</span></p>'+
+									'</div>'+
+									'<div class="col-4">'+
+										'<div class="imdb-2 float-right">'+ popular_serials.imdb_vote +'</div>'+
+									'</div>'+
+								'</div>'+
+							'</div>'+
+						'</div>'+
+					'</div>'
+				);
+			});
+		}
+	})
+	.fail(function() {
+		console.log("error");
+	})
+	.always(function() {
+		console.log("complete");
+	});
+	
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function TitleSlug(Text)
+{
+    return Text
+        .toLowerCase()
+        .replace(/[^\w ]+/g,'')
+        .replace(/ +/g,'-')
+        ;
+}
+
+
+
+
+
+
+
+
+
+// quick search regex
+var qsRegex;
+
+// init Isotope
+var $grid = $('.ResultActorSearch').isotope({
+  itemSelector: '.movie-item',
+  layoutMode: 'fitRows',
+  filter: function() {
+    return qsRegex ? $(this).text().match( qsRegex ) : true;
+  }
+});
+
+// use value of search field to filter
+var $quicksearch = $('#SearchMovieActor').keyup( debounce( function() {
+  qsRegex = new RegExp( $quicksearch.val(), 'gi' );
+  $grid.isotope();
+}, 200 ) );
+
+// debounce so filtering doesn't happen every millisecond
+function debounce( fn, threshold ) {
+  var timeout;
+  threshold = threshold || 100;
+  return function debounced() {
+    clearTimeout( timeout );
+    var args = arguments;
+    var _this = this;
+    function delayed() {
+      fn.apply( _this, args );
+    }
+    timeout = setTimeout( delayed, threshold );
+  };
+}
+
+
+
+function escapeHtml(text) {
+  var map = {
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  
+  return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
+function escapeUnicode(str) {
+	return str.replace(/[^\0-~]/g, function(ch) {
+		return "\\u" + ("0000" + ch.charCodeAt().toString(16)).slice(-4);
+	});
+}
+
+// SEARCH FORM
+$('.searchInput').keyup(function(event) {
+
+	var _val = $(this).val();
+	
+	if (_val.length >= 2) {
+
+		var results_status = $.ajax({
+			url: '/Api/WebService/search/' + _val,
+			type: 'POST',
+			dataType: 'json',
+			data: {value: _val},
+		})
+		.done(function(data) {
+			$('#search_autocomplete').empty();
+			
+			
+
+			
+			if (data.code == 2000 && data.response) {
+				
+				if(data.response.movies){
+					$.each(data.response.movies, function(index, movies) {
+						
+						var images 		= JSON.parse(movies.images);
+						var titles 		= JSON.parse(movies.titles);
+						var title_en	= titles[0].title;
+						var title_ge	= titles[1].title;
+						
+						$('#search_autocomplete').append('<div sid="'+ movies.count_total +'" onclick="location.href=\'/movie/'+ movies.movie_id +'/'+ TitleSlug(title_en) +'\';" class="search-item"><div class="thumb"><img src="https://static.movie.ge/movies/bg/normal/'+ images.bg +'" class="cover-img lazy_load"></div><div class="titles"><h3 class="title">'+ title_ge +'<small>'+ title_en +'</small></h3></div><div class="type">ფილმი</div></div>');
+						
+					});
+				}
+				if(data.response.trailers){
+					$.each(data.response.trailers, function(index, trailer) {
+						
+						var images 		= JSON.parse(trailer.images);
+						var titles 		= JSON.parse(trailer.titles);
+						var title_en	= titles[0].title;
+						var title_ge	= titles[1].title;
+						
+						$('#search_autocomplete').append('<div sid="'+ trailer.count_total +'" onclick="location.href=\'/movie/'+ trailer.movie_id +'/'+ TitleSlug(title_en) +'\';" class="search-item"><div class="thumb"><img src="https://static.movie.ge/movies/bg/normal/'+ images.bg +'" class="cover-img lazy_load"></div><div class="titles"><h3 class="title">'+ title_ge +'<small>'+ title_en +'</small></h3></div><div class="type">თრილერი</div></div>');
+						
+					});
+				}
+				if(data.response.serials){
+					$.each(data.response.serials, function(index, serials) {
+						
+						var images 		= JSON.parse(serials.images);
+						var titles 		= JSON.parse(serials.titles);
+						var title_en	= titles[0].title;
+						var title_ge	= titles[1].title;
+						$('#search_autocomplete').append('<div onclick="location.href=\'/serial/'+ serials.id +'/'+ TitleSlug(title_en) +'\';" class="search-item"><div class="thumb"><img src="https://static.movie.ge/movies/bg/normal/'+ images.bg +'" class="cover-img lazy_load"></div><div class="titles"><h3 class="title">'+ title_ge +'<small>'+ title_en +'</small></h3></div><div class="type">სერიალი</div></div>');
+						
+					});
+				}
+				if(data.response.persons){
+					$.each(data.response.persons, function(index, persons) {
+						
+						$('#search_autocomplete').append('<div onclick="location.href=\'/person/'+ persons.id +'/'+ TitleSlug(persons.name) +'\';" class="search-item person"><div class="thumb"><img src="'+ persons.profile_path +'" class="cover-img lazy_load"></div><div class="titles"><h3 class="title">'+ persons.name +'</h3></div><div class="type">მსახიობი</div></div>');
+						
+					});
+				}
+				/*
+				var els = $('#search_autocomplete .search-item').get();
+				
+				els.sort(function(desc, asc){
+					return $(desc).text().trim().localeCompare($(desc).text().trim());
+				})
+				
+				$('#search_autocomplete').append(els);
+				
+				SearchMovieActor
+				*/
+				
+				$('input.searchInput').addClass('activeSearchInput');
+				$('#search_autocomplete').addClass('show');
+				var results_status = true;
+			}
+			
+		})
+		
+		$('#search_autocomplete').removeClass('show');
+		$('input.searchInput').removeClass('activeSearchInput');
+	
+	}
+	
+	window.addEventListener('click', function(e){
+	
+		if(document.getElementById("SearchMovie").contains(e.target) && results_status){
+			$('input.searchInput').addClass('activeSearchInput');
+			$('#search_autocomplete').addClass('show');
+		}else{
+			$('#search_autocomplete').removeClass('show');
+			$('input.searchInput').removeClass('activeSearchInput');
+		}
+		
+	});
+	
+});
+
+
+
+
+
+
+
+
+
+		function removeURLParameter(url, parameter) {
+			//prefer to use l.search if you have a location/link object
+			var urlparts = url.split('?');
+			if (urlparts.length >= 2) {
+
+				var prefix = encodeURI(parameter);
+				var pars = urlparts[1].split(/[&]/g);
+				//reverse iteration as may be destructive
+				for (var i = pars.length; i-- > 0;) {
+					//idiom for string.startsWith
+
+					if (pars[i].lastIndexOf(prefix, 0) != -1) {
+						pars.splice(i, 1);
+					}
+				}
+
+				return urlparts[0] + (pars.length > 0 ? '?' + pars.join('&') : '');
+			}
+			return url;
+		}
+
+		function queryStringUrlReplacement(uri, key, value) {
+			var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+			var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+			if (uri.match(re)) {
+				return uri.replace(re, '$1' + key + "=" + value + '$2');
+			}else {
+				return uri + separator + key + "=" + value;
+			}
+		}
+
+
+
+		function hasFilterParam(var_name) {
+			var query = window.location.search.substring(1);
+			var vars = query.split("&");
+			for (var i = 0; i < vars.length; i++) {
+				var pair = vars[i].split("=");
+				if (pair[0] == var_name) { return pair[1]; }
+			}
+			return (false);
+		}
+
+
+        function removeParam(key, sourceURL) {
+            var rtn = sourceURL.split("?")[0],
+                param,
+                params_arr = [],
+                queryString = (sourceURL.indexOf("?") !== -1) ? sourceURL.split("?")[1] : "";
+            if (queryString !== "") {
+                params_arr = queryString.split("&");
+                params_arr.splice(0, 1);
+                rtn = rtn + "?" + params_arr.join("&");
+            }
+            return rtn;
+        }
+
+        
+
+        function RenderResultFilter(FilterElemtn, showImd = true, showYear = true) {
+
+
+
+            $GanresInput = $(FilterElemtn).find('.ganre_input:checked');
+            $GanresInputMob = $(FilterElemtn).find('.input_gener_mob:checked');
+            $CountryInput = $(FilterElemtn).find('.country_input:checked');
+            $CountryInputMob = $(FilterElemtn).find('.country_mob_input:checked');
+            $LangInput = $(FilterElemtn).find('.lang_input:checked');
+            $LangInputMob = $(FilterElemtn).find('.mob_lang_input:checked');
+            $TypeInputMob = $(FilterElemtn).find('.input_type_mob:checked');
+            $('.ResultFitreed').empty();
+            $('.ganreMobResult').empty();
+            $('.countryMobResult').empty();
+            $('.LangMobResult').empty();
+            $('.TypeMobResult').empty();
+
+
+
+
+
+
+            if (hasFilterParam('imdb')) {
+                var IMDbMax = $(FilterElemtn).find('.imd_min').val();
+                var IMDbMin = $(FilterElemtn).find('.imd_max').val();
+                $('.ResultFitreed').append('<div class="chip imd_res filter_not_delete text-main arial  font-size-14 d-flex justify-content-center align-items-center mr-2 mb-2">\
+                          <span class="text-inversed mr-2">IMDb ' + IMDbMin + ' - ' + IMDbMax + ' </span>\
+                      </div>');
+                $('.ImdbMobResult').append('<div class="filter-item-mob rounded-5 arial text-main font-size-14">' + IMDbMin + ' - ' + IMDbMax + '</div>')
+            }
+
+            if (hasFilterParam('year')) {
+                var YearMin = $(FilterElemtn).find('.year_min').val();
+                var YearMax = $(FilterElemtn).find('.year_max').val();
+                $('.ResultFitreed').append('<div class="chip year_res filter_not_delete text-main arial  font-size-14 d-flex justify-content-center align-items-center mr-2 mb-2">\
+                          <span class="text-inversed mr-2">' + YearMin + ' - ' + YearMax + ' </span>\
+                      </div>');
+                $('.YearMobResult').append('<div class="filter-item-mob rounded-5 arial text-main font-size-14">' + YearMin + ' - ' + YearMax + '</div>')
+            }
+
+            $GanresInput.each(function(index, val) {
+                var array_selected = [];
+                // if($(val).val() in array_selected ){
+                if ($(val).parent('.chip').data('index') !== $(val).val()) {
+                    $('.ResultFitreed').append('<div data-index="' + $(val).val() + '" class="chip text-main arial  font-size-14 d-flex justify-content-center align-items-center mr-2 mb-2">\
+                        <span class="text-inversed mr-2">' + $(val).data('val') + '</span>\
+                        <div class=" removeEleMentFilter remove-btn text-main d-flex justify-content-center align-items-center" data-preg="genres[]" title="áƒ¬áƒáƒ¨áƒšáƒ"><i class="fas fa-times"></i></div>\
+                    </div>');
+                }
+            });
+
+
+            $LangInput.each(function(index, val) {
+                var array_selected = [];
+                // if($(val).val() in array_selected ){
+                // if( $(val).parents('label').data('index') !== $(val).val() ){
+
+                $('.ResultFitreed').append('<div data-index="' + $(val).val() + '" class="chip text-main arial  font-size-14 d-flex justify-content-center align-items-center mr-2 mb-2">\
+                        <span class="text-inversed mr-2">' + $(val).data('val') + '</span>\
+                        <div class=" removeEleMentFilter remove-btn text-main d-flex justify-content-center align-items-center" data-preg="languages[]" title="áƒ¬áƒáƒ¨áƒšáƒ"><i class="fas fa-times"></i></div>\
+                    </div>');
+                // }
+            });
+
+
+            $CountryInput.each(function(index, val) {
+                var array_selected = [];
+                // if($(val).val() in array_selected ){
+                if ($(val).parent('.chip').data('index') !== $(val).val()) {
+                    $('.ResultFitreed').append('<div data-index="' + $(val).val() + '" class="chip text-main arial  font-size-14 d-flex justify-content-center align-items-center mr-2 mb-2">\
+                        <span class="text-inversed mr-2">' + $(val).data('val') + '</span>\
+                        <div class=" removeEleMentFilter remove-btn text-main d-flex justify-content-center align-items-center" data-preg="countries[]" title="áƒ¬áƒáƒ¨áƒšáƒ"><i class="fas fa-times"></i></div>\
+                    </div>');
+                }
+            });
+
+
+            if ($.trim($('.ResultFitreed').html()) !== '') {
+                $('.ResultFitreed').parent('.subfilter-container').show()
+            }
+        }
+
+        $('.btn_filet_collection').click(function(e) {
+            e.preventDefault();
+            $('.btn_filet_collection').removeClass('active');
+            $(this).addClass('active');
+            var Type = $(this).data('type');
+            var route = $(this).data('route');
+
+            $.ajax({
+                url: route,
+                type: 'POST',
+                dataType: 'json',
+                data: {type: Type , '_token': token },
+            })
+            .done(function(data) {
+                if (data.length > 0) {
+                    $('.ResultFiltredMainCollection').empty();
+                    $.each(data, function(index, val) {
+                        if (window.innerWidth > 1200) {
+                            $('.ResultFiltredMainCollection').append("<div class=\"col-xl-4 col-md-6 col-12 mb-4 collect_ithem position-relative\">\
+                                    <div class=\"card serial rounded-10 overflow-hidden\">\
+                                        <div class=\"row no-gutters\">\
+                                            <div class=\"col-5 collection-image position-relative  overflow-hidden\">\
+                                                <a href=\"" + val.link + "\">\
+                                                    " + val.image + "\
+                                                </a>\
+                                            </div>\
+                                            <div class=\"col-7 position-relative\">\
+                                                <a href=\"" + val.link + "\" class=\"m-4 text-inversed arial collection-name\">\
+                                                   " + val.name + "\
+                                                </a>\
+                                                <a href=\"" + val.author_link + "\" class=\"px-4 d-flex align-items-center mb-5\">\
+                                                    <img src=\"" + val.author_avat + "\" alt=\"" + val.author + "\" class=\"user-img\">\
+                                                    <div class=\"ml-2 text-gray arial font-size-12\">" + val.author + "</div>\
+                                                </a>\
+                                                <div class=\"text-gray font-size-12 arial position-absolute bottom left movie-quant-mob\">" + val.count_movie + " áƒ¤áƒ˜áƒšáƒ›áƒ˜</div>\
+                                                <div class=\"d-flex align-items-center justify-content-center arial font-size-12 position-absolute bottom right collection-subs\">" + val.count_subscribe + " áƒ’áƒáƒ›áƒáƒ›áƒ¬áƒ”áƒ áƒ˜</div>\
+                                            </div>\
+                                        </div>\
+                                    </div>\
+                                </div>");
+                        } else {
+                            $('.ResultFiltredMainCollection').append("<div class=\"coll-item-mob mt-3\">\
+                    <div class=\"card serial rounded-10 overflow-hidden\">\
+                        <div class=\"row no-gutters\">\
+                            <div class=\"collection-image position-relative overflow-hidden\">\
+                                <a href=\"" + val.link + "\">\
+                                " + val.image + "\
+                            </a>\
+                            </div>\
+                            <div class=\"colls-item\">\
+                            <div class=\"position-relative\">\
+                                <a href=\"" + val.link + "\" class=\"m-4 text-inversed arial collection-name\">\
+                                    " + val.name + "\
+                                </a>\
+                                <div class=\"coll-img\">\
+                                <a href=\"" + val.author_link + "\" class=\"px-4 d-flex align-items-center mb-5\">\
+                                    <img src=\"" + val.author_avat + "\" alt=\"" + val.author + "\" class=\"user-img\">\
+                                    <div class=\"ml-2 text-gray arial font-size-12\">" + val.author + "</div>\
+                                </a> </div>\
+                                <div class=\"coll-stats\">\
+                                <div class=\"text-gray font-size-12 arial position-absolute bottom left movie-quant-mob\">" + val.count_movie + " áƒ¤áƒ˜áƒšáƒ›áƒ˜</div>\
+                                <div class=\"d-flex align-items-center justify-content-center arial font-size-12 position-absolute bottom right collection-subs\">" + val.count_subscribe + " áƒ’áƒáƒ›áƒáƒ›áƒ¬áƒ”áƒ áƒ˜</div>\
+                                </div>\
+                                </div>\
+                            </div>\
+                        </div>\
+                    </div>\
+                </div>");
+                        }
+                    });
+                }
+            })
+            .fail(function() {
+                console.log("error");
+            })
+            .always(function() {
+                console.log("complete");
+            });
+            
+
+
+        });
+
+
+        RenderResultFilter($('.Movie_filter'));
+
+        $('.Movie_filter').change(function() {
+            RenderResultFilter($(this));
+            // $(this).trigger('submit');
+        });
+
+
+
+
+        $(".ResultFitreed").delegate('.removeEleMentFilter', 'click', function(event) {
+            var Index = $(this).parent('.chip').data('index');
+            var Preg = $(this).data('preg');
+            var StringUrlREmove = Preg + "=" + Index;
+            var UpdateURl = removeURLParameter(window.location.href, StringUrlREmove);
+            window.location.href = UpdateURl;
+        });
+
+        $('.Movie_filter').submit(function(event) {
+            event.preventDefault();
+            var $Dataserialize = $(this).serialize();
+            var ActionUrl = $(this).attr('action');
+            var IMDbMax = $(this).find('.imd_max').val();
+            var IMDbMin = $(this).find('.imd_min').val();
+            var YearMax = $(this).find('.year_min').val();
+            var YearMin = $(this).find('.year_max').val();
+            var TypeFilter = $(this).find('input[name="type"]:checked').val();
+			console.log(TypeFilter);
+			console.log(ActionUrl);
+            ActionUrl = queryStringUrlReplacement(ActionUrl, 'type', TypeFilter);
+            var IMDbresult = "&imdb=" + IMDbMax + ";" + IMDbMin;
+            var YearResult = "&year=" + YearMax + ";" + YearMin;
+            var result = ActionUrl + "&" + $Dataserialize + IMDbresult + YearResult;
+
+            location.href = removeParam('type', result);
+        });
+		
+		
+		var ithemCountry = $('.country-dropdown').find('label')
+
+            $('.country-dropdown .dropdown-search input').keyup(function(event) {
+                const term = $(this).val().toLocaleLowerCase();
+                ithemCountry.each(function(index, elem) {
+
+                    var hasResults = false;
+                    var title = $(elem).attr('title');
+                    if (title.toLowerCase().indexOf(term) != -1) {
+                        $(elem).removeClass('filter_hide');
+                        hasResults = true;
+                    } else {
+                        $(elem).addClass('filter_hide');
+                    }
+                });
+
+
+            })
+
+
+            var ithemGenre = $('.genre-dropdown').find('label')
+
+            $('.genre-dropdown .dropdown-search input').keyup(function(event) {
+                const term = $(this).val().toLocaleLowerCase();
+                ithemGenre.each(function(index, elem) {
+
+                    var hasResults = false;
+                    var title = $(elem).attr('title');
+                    if (title.toLowerCase().indexOf(term) != -1) {
+                        $(elem).removeClass('filter_hide');
+                        hasResults = true;
+                    } else {
+                        $(elem).addClass('filter_hide');
+                    }
+                });
+
+
+            })
+
+
+		
+		
+
+        
+		

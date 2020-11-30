@@ -1,0 +1,514 @@
+
+/*
+jQuery(document).ready(function($) {
+	$(".toggle").click(function() {
+		$(".toggle").toggleClass("active");
+		$("body").toggleClass("light-mode");
+		//$.cookie("toggle", $(".toggle").hasClass('active'),{ expires : 30 });
+		theme = $(".toggle").hasClass('active') ? 'light' : 'false';
+		$.cookie("toggle", theme,{ path: '/', expires : 30 });
+	});
+
+	if ($.cookie("toggle") == "light") {
+		$(".toggle").addClass("active");
+		$("body").addClass("light-mode");
+	}
+});
+*/
+
+var KEYCODE_ENTER = 13;
+var KEYCODE_ESC = 27;
+
+$(document).keyup(function(e) {
+	if(e.keyCode == KEYCODE_ESC){ $('#close').click(); $('.closeBtn').click();};
+});
+
+
+$(document).delegate('#notify .closeBtn', 'click', function(event) {
+	$('#notify').html('');
+	$('body').css('overflow','');
+});
+
+$(document).delegate('#notify #outside_close', 'click', function(e) {
+	$('#notify').html('');
+	$('body').css('overflow','');
+});
+
+$.get("/Api/Profile", function( profile ) {
+	$('#UserArea').html(profile);
+});
+
+
+
+// START SAVE MENU - MOVIES AND SERIALS
+//e.preventDefault();
+//e.stopPropagation();
+
+$(document).on("click", function (e) {
+	$('#items_menu #toogle-menu').html('');
+});
+
+
+$(document).delegate('#items_menu', 'click', function(e) {
+	
+	$(this).toggleClass('open');
+	
+	if($(this).hasClass('open')) {
+		
+		
+		var id = $(this).data('id');
+		var movie_id = $(this).data('movie_id');
+		var type = $(this).data('type');
+		var $_this = $(this);
+		var $_menu = $(this).find('#toogle-menu');
+		
+		
+		$.ajax({
+			url: '/profile/actions',
+			type: 'POST',
+			dataType: 'json',
+			data: { id:id, type:type },
+		}).done(function(results) {
+			
+			$($_menu).html(
+				'<div id="going_watches" data-type="'+type+'" data-id="'+id+'" class="'+results.going_watches.status+'">'+
+					'<svg width="16" height="16" fill="currentColor" class="fade-ready svg-icon svg-icon--watch-later" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-8 6.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13z" fill="currentColor"></path><path d="M8.5 9V4H7v5h1.5z" fill="currentColor"></path><path d="M11.015 10.117l-3.12-2.285L7 9.055l3.12 2.285.895-1.223z" fill="currentColor"></path></svg>'+
+					'<span>'+results.going_watches.message+'</span>'+
+				'</div>'+
+				'<div id="favorites" data-type="'+type+'" data-id="'+id+'" class="'+results.favorites.status+'">'+
+					'<svg width="18" height="16" fill="currentColor" class="fade-ready svg-icon svg-icon--heart flex-shrink-0" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M9 5.41L7.737 3.21c-.604-1.051-1.684-1.725-2.89-1.725-1.827 0-3.385 1.564-3.385 3.593 0 1.047.421 1.98 1.085 2.634l2.593 2.552H5.09l3.91 3.92 3.909-3.92h-.05l2.593-2.552a3.68 3.68 0 0 0 1.085-2.634c0-2.029-1.558-3.593-3.384-3.593-1.207 0-2.286.674-2.89 1.725L9 5.41zm.501 10.361a.674.674 0 0 1-.503.229.679.679 0 0 1-.532-.262L1.528 8.78h.001v-.001A5.093 5.093 0 0 1 .484 7.294 5.253 5.253 0 0 1 0 5.08C0 2.274 2.17 0 4.846 0A4.7 4.7 0 0 1 8.03 1.25c.38.348.708.757.97 1.212.262-.455.59-.864.97-1.212A4.7 4.7 0 0 1 13.155 0C15.83 0 18 2.274 18 5.079c0 .794-.174 1.546-.485 2.215a5.09 5.09 0 0 1-1.042 1.484h-.001l-.001.002h.002L9.5 15.77z" fill="currentColor"></path></svg>'+
+					'<span>'+results.favorites.message+'</span>'+
+				'</div>'+
+				'<div id="collections" data-type="'+type+'" data-id="'+movie_id+'" data-movie_id="'+id+'" class="">'+
+					'<svg width="18" height="13" fill="currentColor" class="fade-ready svg-icon svg-icon--add-to" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H0v2h11V4zm0-4H0v2h11V0zm4 8V5h-2v3h-3v2h3v3h2v-3h3V8h-3zM0 10h8V8H0v2z" fill="currentColor"></path></svg>'+
+					'<span>კოლექციაში დამატება</span>'+
+				'</div>'
+			);
+			
+		}).fail(function(error) {
+			var response = error.responseJSON;
+            if( response.errors ) Notify( response.errors ,'danger');
+		});
+		
+	}
+	
+	
+});
+
+
+
+
+
+$(document).delegate('#toogle-menu div', 'click', function(e) {
+	
+	e.stopPropagation();
+	
+	var action		= $(this).attr('id');
+	var type		= $(this).data('type');
+	var movie_id	= $(this).data('movie_id');
+	var id			= $(this).data('id');
+	var _this		= $(this);
+	
+	$.ajax({
+		url: '/profile/actions',
+		type: 'POST',
+		dataType: 'json',
+		data: { id:id, movie_id:movie_id, action:action, type:type },
+		
+	}).done(function(data) {
+		
+		var collection_items = '';
+		
+		
+		if(data.status=='get_list'){
+			
+			
+			$.each( data.collections, function( key, collection ) {
+				
+				collection_items += 
+					'<label class="m-0 py-2 overflow-hidden d-flex align-items-center">'+
+						'<input class="filter-radio collection_input_check" '+ collection.status +' data-action="'+ action +'" data-type="'+ type +'" data-item="'+ id +'" data-movie_id="'+ movie_id +'" data-id="'+ collection.id +'" id="collection_id" name="collection_id" type="checkbox" value="'+ collection.id +'">'+
+						'<div class="filter-custom-radio float-left mr-3"></div>'+
+						'<div class="text-inversed arial font-size-14 float-left">'+ collection.name +'</div>'+
+					'</label>';
+			});
+			
+			$('#notify').html(
+				'<div class="collection-pop-select justify-content-center align-items-center show" id="collectionList">'+
+					'<div id="outside_close"></div>'+
+					'<div class="collection-pop-in rounded-10 position-relative">'+
+						'<div class="popup-head">'+
+							'<div class="title">კოლექციაში დამატება</div>'+
+							'<div class="closeBtn"><i class="fas fa-times"></i></div>'+
+						'</div>'+
+						'<div class="popup-body">'+
+							'<div id="collection_items">'+ collection_items +'</div>'+
+						'</div>'+
+					'</div>'+
+				'</div>'
+			);
+			
+			
+			$('#collection_items').delegate('label #collection_id', 'click', function(event) {
+				
+				var action			= $(this).data('action');
+				var type			= $(this).data('type');
+				var item_id			= $(this).data('item');
+				var movie_id		= $(this).data('movie_id');
+				var collection_id	= $(this).data('id');
+				
+				$.ajax({
+					
+					url: '/profile/actions',
+					type: 'POST',
+					dataType: 'json',
+					data: { collection_id:collection_id, movie_id:movie_id, action:action, type:type, item_id:item_id },
+					
+				}).done(function(data) {
+					
+					if(data.status === 'saved') {
+						Notify(data.message);
+					}
+					
+					if(data.status === 'deleted') {
+						Notify(data.message,'danger');
+					}
+					
+				})
+				
+			});
+			
+		}
+		
+		if(data.status=='create_list'){
+			Notify(data.msg,'danger');
+		}
+		
+		if(data.status === 'saved') {
+			$(_this).addClass('active')
+			$(_this).find('span').html(data.html)
+			Notify(data.message);
+		}
+		if(data.status === 'deleted') {
+			$(_this).removeClass('active')
+			$(_this).find('span').html(data.html)
+			Notify(data.message,'danger');
+		}
+	}).fail(function(error) {
+			var response = error.responseJSON;
+            if( response.errors ) Notify( response.errors ,'danger');
+		});
+	
+});
+
+
+
+
+var action_menu = $('#action_menu').data('id');
+
+if(action_menu){
+	
+	var id			 = $('#action_menu').data('id');
+	var movie_id	 = $('#action_menu').data('movie_id');
+	var type		 = $('#action_menu').data('type');
+	
+	$('#action_menu').html(
+		'<li id="going_watches" data-id="8599" data-movie_id="8599" data-type="movie" class="">'+
+			'<span tooltip="ვაპირებ ყურებას"><svg id="Capa_1" enable-background="new 0 0 443.294 443.294" height="20" viewBox="0 0 443.294 443.294" width="20" xmlns="http://www.w3.org/2000/svg"> <path d="m221.647 0c-122.214 0-221.647 99.433-221.647 221.647s99.433 221.647 221.647 221.647 221.647-99.433 221.647-221.647-99.433-221.647-221.647-221.647zm0 415.588c-106.941 0-193.941-87-193.941-193.941s87-193.941 193.941-193.941 193.941 87 193.941 193.941-87 193.941-193.941 193.941z"></path> <path d="m235.5 83.118h-27.706v144.265l87.176 87.176 19.589-19.589-79.059-79.059z"></path> </svg></span>'+
+		'</li>'+
+		'<li id="favorites" data-id="8599" data-movie_id="8599" data-type="movie" class="">'+
+			'<span tooltip="ფავორიტებში დამატება"><svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve"> <g> <g> <path d="M375.467,22.164c-60.061,0-99.769,32.795-119.467,54.493c-19.697-21.696-59.406-54.493-119.467-54.493 C54.581,22.164,0,98.373,0,183.744c0,63.878,32.211,188.323,247.931,304.064c5.037,2.703,11.098,2.705,16.138,0 C479.79,372.066,512,247.622,512,183.744C512,96.392,455.803,22.164,375.467,22.164z M256,453.348 C152.381,396.376,34.133,301.45,34.133,183.744c0-65.477,39.319-127.446,102.4-127.446c47.857,0,87.452,29.344,104.973,56.973 c6.679,10.743,22.365,10.732,29.017-0.046c0.352-0.569,35.938-56.928,104.944-56.928c63.551,0,102.4,62.591,102.4,127.446 C477.867,301.452,359.622,396.375,256,453.348z"></path> </g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> </svg></span>'+
+		'</li>'+
+		'<li id="collections" data-id="8599" data-movie_id="8599" data-type="movie" class="">'+
+			'<span tooltip="კოლექციაში დამატება"> <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve"> <g> <g> <g> <path d="M156,256c0,11.046,8.954,20,20,20h60v60c0,11.046,8.954,20,20,20s20-8.954,20-20v-60h60c11.046,0,20-8.954,20-20 c0-11.046-8.954-20-20-20h-60v-60c0-11.046-8.954-20-20-20s-20,8.954-20,20v60h-60C164.954,236,156,244.954,156,256z"></path> <path d="M160.406,61.8l25.869-10.716c10.204-4.228,15.051-15.927,10.823-26.132c-4.228-10.205-15.926-15.054-26.132-10.823 l-25.869,10.716c-10.204,4.228-15.051,15.927-10.823,26.132C138.488,61.148,150.168,66.038,160.406,61.8z"></path> <path d="M256,0c-11.046,0-20,8.954-20,20s8.954,20,20,20c119.378,0,216,96.608,216,216c0,119.378-96.608,216-216,216 c-119.378,0-216-96.608-216-216c0-11.046-8.954-20-20-20s-20,8.954-20,20c0,141.483,114.497,256,256,256 c141.483,0,256-114.497,256-256C512,114.517,397.503,0,256,0z"></path> <path d="M93.366,113.165l19.799-19.799c7.811-7.811,7.811-20.475,0-28.285c-7.811-7.81-20.475-7.811-28.285,0L65.081,84.88 c-7.811,7.811-7.811,20.475,0,28.285C72.89,120.974,85.555,120.976,93.366,113.165z"></path> <path d="M24.952,197.099c10.227,4.236,21.914-0.642,26.132-10.823l10.716-25.87c4.228-10.205-0.619-21.904-10.823-26.132 c-10.207-4.227-21.904,0.619-26.132,10.823l-10.716,25.869C9.901,181.172,14.748,192.871,24.952,197.099z"></path> </g> </g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> </svg></span>'+
+		'</li>'
+	);
+	
+	$.ajax({
+		url: '/profile/actions',
+		type: 'POST',
+		dataType: 'json',
+		data: { id:id, movie_id:movie_id, type:type },
+	}).done(function(results) {
+		
+		$('#action_menu').html(
+			'<li id="going_watches" data-id="'+id+'" data-movie_id="'+movie_id+'" data-type="'+type+'" class="'+results.going_watches.status+'">'+
+				'<span tooltip="'+results.going_watches.message+'">'+
+					'<svg id="Capa_1" enable-background="new 0 0 443.294 443.294" height="20" viewBox="0 0 443.294 443.294" width="20" xmlns="http://www.w3.org/2000/svg"> <path d="m221.647 0c-122.214 0-221.647 99.433-221.647 221.647s99.433 221.647 221.647 221.647 221.647-99.433 221.647-221.647-99.433-221.647-221.647-221.647zm0 415.588c-106.941 0-193.941-87-193.941-193.941s87-193.941 193.941-193.941 193.941 87 193.941 193.941-87 193.941-193.941 193.941z"></path> <path d="m235.5 83.118h-27.706v144.265l87.176 87.176 19.589-19.589-79.059-79.059z"></path> </svg>'+
+				'</span>'+
+			'</li>'+
+			'<li id="favorites" data-id="'+id+'" data-movie_id="'+movie_id+'" data-type="'+type+'" class="'+results.favorites.status+'">'+
+				'<span tooltip="'+results.favorites.message+'">'+
+					'<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve"> <g> <g> <path d="M375.467,22.164c-60.061,0-99.769,32.795-119.467,54.493c-19.697-21.696-59.406-54.493-119.467-54.493 C54.581,22.164,0,98.373,0,183.744c0,63.878,32.211,188.323,247.931,304.064c5.037,2.703,11.098,2.705,16.138,0 C479.79,372.066,512,247.622,512,183.744C512,96.392,455.803,22.164,375.467,22.164z M256,453.348 C152.381,396.376,34.133,301.45,34.133,183.744c0-65.477,39.319-127.446,102.4-127.446c47.857,0,87.452,29.344,104.973,56.973 c6.679,10.743,22.365,10.732,29.017-0.046c0.352-0.569,35.938-56.928,104.944-56.928c63.551,0,102.4,62.591,102.4,127.446 C477.867,301.452,359.622,396.375,256,453.348z"></path> </g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> </svg>'+
+				'</span>'+
+			'</li>'+
+			'<li id="collections" data-id="'+id+'" data-movie_id="'+movie_id+'" data-type="'+type+'" class="">'+
+				'<span tooltip="კოლექციაში დამატება">'+
+					'<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve"> <g> <g> <g> <path d="M156,256c0,11.046,8.954,20,20,20h60v60c0,11.046,8.954,20,20,20s20-8.954,20-20v-60h60c11.046,0,20-8.954,20-20 c0-11.046-8.954-20-20-20h-60v-60c0-11.046-8.954-20-20-20s-20,8.954-20,20v60h-60C164.954,236,156,244.954,156,256z"></path> <path d="M160.406,61.8l25.869-10.716c10.204-4.228,15.051-15.927,10.823-26.132c-4.228-10.205-15.926-15.054-26.132-10.823 l-25.869,10.716c-10.204,4.228-15.051,15.927-10.823,26.132C138.488,61.148,150.168,66.038,160.406,61.8z"></path> <path d="M256,0c-11.046,0-20,8.954-20,20s8.954,20,20,20c119.378,0,216,96.608,216,216c0,119.378-96.608,216-216,216 c-119.378,0-216-96.608-216-216c0-11.046-8.954-20-20-20s-20,8.954-20,20c0,141.483,114.497,256,256,256 c141.483,0,256-114.497,256-256C512,114.517,397.503,0,256,0z"></path> <path d="M93.366,113.165l19.799-19.799c7.811-7.811,7.811-20.475,0-28.285c-7.811-7.81-20.475-7.811-28.285,0L65.081,84.88 c-7.811,7.811-7.811,20.475,0,28.285C72.89,120.974,85.555,120.976,93.366,113.165z"></path> <path d="M24.952,197.099c10.227,4.236,21.914-0.642,26.132-10.823l10.716-25.87c4.228-10.205-0.619-21.904-10.823-26.132 c-10.207-4.227-21.904,0.619-26.132,10.823l-10.716,25.869C9.901,181.172,14.748,192.871,24.952,197.099z"></path> </g> </g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> </svg>'+
+				'</span>'+
+			'</li>'
+			//'<li id="subscribe" data-type="'+type+'" data-id="'+id+'" class="">'+
+			//	'<span tooltip="გამოწერა">'+
+			//		'<svg viewBox="-21 0 512 512" xmlns="http://www.w3.org/2000/svg"> <path d="m453.332031 229.332031c-8.832031 0-16-7.167969-16-16 0-61.269531-23.847656-118.847656-67.15625-162.175781-6.25-6.25-6.25-16.382812 0-22.632812s16.382813-6.25 22.636719 0c49.34375 49.363281 76.519531 115.007812 76.519531 184.808593 0 8.832031-7.167969 16-16 16zm0 0"></path> <path d="m16 229.332031c-8.832031 0-16-7.167969-16-16 0-69.800781 27.179688-135.445312 76.542969-184.789062 6.25-6.25 16.386719-6.25 22.636719 0s6.25 16.386719 0 22.636719c-43.328126 43.304687-67.179688 100.882812-67.179688 162.152343 0 8.832031-7.167969 16-16 16zm0 0"></path> <path d="m234.667969 512c-44.117188 0-80-35.882812-80-80 0-8.832031 7.167969-16 16-16s16 7.167969 16 16c0 26.476562 21.523437 48 48 48 26.472656 0 48-21.523438 48-48 0-8.832031 7.167969-16 16-16s16 7.167969 16 16c0 44.117188-35.882813 80-80 80zm0 0"></path> <path d="m410.667969 448h-352c-20.589844 0-37.335938-16.746094-37.335938-37.332031 0-10.925781 4.757813-21.269531 13.058594-28.375 32.445313-27.414063 50.941406-67.261719 50.941406-109.480469v-59.480469c0-82.34375 66.988281-149.332031 149.335938-149.332031 82.34375 0 149.332031 66.988281 149.332031 149.332031v59.480469c0 42.21875 18.496094 82.066406 50.730469 109.332031 8.511719 7.253907 13.269531 17.597657 13.269531 28.523438 0 20.585937-16.746094 37.332031-37.332031 37.332031zm-176-352c-64.707031 0-117.335938 52.628906-117.335938 117.332031v59.480469c0 51.644531-22.632812 100.414062-62.078125 133.757812-.746094.640626-1.921875 1.964844-1.921875 4.097657 0 2.898437 2.433594 5.332031 5.335938 5.332031h352c2.898437 0 5.332031-2.433594 5.332031-5.332031 0-2.132813-1.171875-3.457031-1.878906-4.054688-39.488282-33.386719-62.121094-82.15625-62.121094-133.800781v-59.480469c0-64.703125-52.628906-117.332031-117.332031-117.332031zm0 0"></path> <path d="m234.667969 96c-8.832031 0-16-7.167969-16-16v-64c0-8.832031 7.167969-16 16-16s16 7.167969 16 16v64c0 8.832031-7.167969 16-16 16zm0 0"></path> </svg>'+
+			//	'</span>'+
+			//'</li>'
+		);
+		
+	});
+	
+	
+	$(document).delegate('#action_menu li', 'click', function(e) {
+		
+		e.stopPropagation();
+		
+		var action		= $(this).attr('id');
+		var type		= $(this).data('type');
+		var movie_id	= $(this).data('movie_id');
+		var id			= $(this).data('id');
+		var _this		= $(this);
+		
+		$.ajax({
+			url: '/profile/actions',
+			type: 'POST',
+			dataType: 'json',
+			data: { id:id, movie_id:movie_id, action:action, type:type },
+			
+		}).done(function(data) {
+			
+			var collection_items = '';
+			
+			if(data.status=='get_list'){
+				
+				
+				$.each( data.collections, function( key, collection ) {
+					
+					collection_items += 
+						'<label class="m-0 py-2 overflow-hidden d-flex align-items-center">'+
+							'<input class="filter-radio collection_input_check" '+ collection.status +' data-action="'+ action +'" data-type="'+ type +'" data-item="'+ id +'" data-movie_id="'+ movie_id +'" data-id="'+ collection.id +'" id="collection_id" name="collection_id" type="checkbox" value="'+ collection.id +'">'+
+							'<div class="filter-custom-radio float-left mr-3"></div>'+
+							'<div class="text-inversed arial font-size-14 float-left">'+ collection.name +'</div>'+
+						'</label>';
+				});
+				
+				$('#notify').html(
+					'<div class="collection-pop-select justify-content-center align-items-center show" id="collectionList">'+
+						'<div id="outside_close"></div>'+
+						'<div class="collection-pop-in rounded-10 position-relative">'+
+							'<div class="popup-head">'+
+								'<div class="title">კოლექციაში დამატება</div>'+
+								'<div class="closeBtn"><i class="fas fa-times"></i></div>'+
+							'</div>'+
+							'<div class="popup-body">'+
+								'<div id="collection_items">'+ collection_items +'</div>'+
+							'</div>'+
+						'</div>'+
+					'</div>'
+				);
+				
+				
+				$('#collection_items').delegate('label #collection_id', 'click', function(event) {
+					
+					var action			= $(this).data('action');
+					var type			= $(this).data('type');
+					var item_id			= $(this).data('item');
+					var movie_id		= $(this).data('movie_id');
+					var collection_id	= $(this).data('id');
+					
+					$.ajax({
+						
+						url: '/profile/actions',
+						type: 'POST',
+						dataType: 'json',
+						data: { collection_id:collection_id, movie_id:movie_id, action:action, type:type, item_id:item_id },
+						
+					}).done(function(data) {
+						
+						if(data.status === 'saved') {
+							Notify(data.message);
+						}
+						
+						if(data.status === 'deleted') {
+							Notify(data.message,'danger');
+						}
+						
+					})
+					
+				});
+				
+			}
+			if(data.status=='create_list'){
+				Notify(data.msg,'danger');
+			}
+			if(data.status === 'saved') {
+				$(_this).addClass('active')
+				$(_this).find('span').attr('tooltip',data.html)
+				Notify(data.message);
+			}
+			
+			if(data.status === 'deleted') {
+				$(_this).removeClass('active')
+				$(_this).find('span').attr('tooltip',data.html)
+				Notify(data.message,'danger');
+			}
+			
+			
+		}).fail(function(error) {
+			var response = error.responseJSON;
+            if( response.errors ) Notify( response.errors ,'danger');
+		});
+		
+	});
+	
+	
+
+}else{
+	
+	
+	
+}
+
+
+
+
+var action = $('#stars').data('action');
+
+if(action=='get_rating'){
+	
+	var action		= $('#stars').data('action');
+	var id			= $('#stars').data('id');
+	var type		= $('#stars').data('type');
+	
+	
+	$.ajax({
+		url: '/profile/rating',
+		type: 'POST',
+		dataType: 'json',
+		data: { id:id, type:type, action:action },
+	}).done(function(results) {
+		
+		$('#stars>li').each(function(){
+			li = $(this).data('value');
+			if(results.my_rating){
+				if(li <= results.my_rating){
+					$(this).addClass('selected');
+				}
+			}else{
+				if(li <= results.rating){
+					$(this).addClass('selected');
+				}
+			}
+		});
+		
+		$('.rating_count').text(results.rating);
+		$('.users_count span').text(results.all_rating);
+	});
+	
+	
+
+}
+
+
+
+
+// END SAVE MENU - MOVIES AND SERIALS
+
+/*
+$("#UserArea").click(function(e){
+	$(".dropdown-menu").toggleClass("active");
+});
+*/
+
+$(document).ready(function(e){
+	$(".dropdown").click(function(){
+		$(this).find(".dropdown-menu").toggleClass("active");
+	});
+});
+
+
+$(document).on("click", function(event){
+	var $trigger = $(".dropdown");
+	if($trigger !== event.target && !$trigger.has(event.target).length){
+		$(".dropdown-menu").removeClass("active");
+	}
+});
+
+
+
+/*
+$('.dropdown').on('show.bs.dropdown', function(e){
+	$(this).find('.dropdown-menu').first().stop(true, true).slideDown();
+});
+
+// ADD SLIDEUP ANIMATION TO DROPDOWN //
+$('.dropdown').on('hide.bs.dropdown', function(e){
+	$(this).find('.dropdown-menu').first().stop(true, true).slideUp();
+});
+
+
+
+
+/*
+
+
+
+$(".ResultFitreed").delegate('.removeEleMentFilter', 'click', function(event) {
+	var Index = $(this).parent('.chip').data('index');
+	var Preg = $(this).data('preg');
+	var StringUrlREmove = Preg + "=" + Index;
+	var UpdateURl = removeURLParameter(window.location.href, StringUrlREmove);
+	window.location.href = UpdateURl;
+});
+
+
+
+
+// LOAD PAGE DATA
+
+var websiteUrl = "https://beta.movie.ge";
+
+$(function() {
+	
+    var box = $('#content');
+	
+    $(document).on('click', 'a', function(e) {
+        
+        var link_url = $(this).attr('href');
+        
+        e.preventDefault();
+		
+		box.html(
+			'<div class="container-fluid mt-3 mr-0 px-xl-5 d-none d-xl-block">'+
+			'<div class="wo_loading_post"><div class="lightui1-shimmer"> <div class="_2iwr"></div> <div class="_2iws"></div> <div class="_2iwt"></div> <div class="_2iwu"></div> <div class="_2iwv"></div> <div class="_2iww"></div> <div class="_2iwx"></div> <div class="_2iwy"></div> <div class="_2iwz"></div> <div class="_2iw-"></div> <div class="_2iw_"></div> <div class="_2ix0"></div> </div></div>'+
+			'<div class="wo_loading_post"><div class="lightui1-shimmer"> <div class="_2iwr"></div> <div class="_2iws"></div> <div class="_2iwt"></div> <div class="_2iwu"></div> <div class="_2iwv"></div> <div class="_2iww"></div> <div class="_2iwx"></div> <div class="_2iwy"></div> <div class="_2iwz"></div> <div class="_2iw-"></div> <div class="_2iw_"></div> <div class="_2ix0"></div> </div></div>'+
+			'<div class="wo_loading_post"><div class="lightui1-shimmer"> <div class="_2iwr"></div> <div class="_2iws"></div> <div class="_2iwt"></div> <div class="_2iwu"></div> <div class="_2iwv"></div> <div class="_2iww"></div> <div class="_2iwx"></div> <div class="_2iwy"></div> <div class="_2iwz"></div> <div class="_2iw-"></div> <div class="_2iw_"></div> <div class="_2ix0"></div> </div></div>'+
+			'<div class="wo_loading_post"><div class="lightui1-shimmer"> <div class="_2iwr"></div> <div class="_2iws"></div> <div class="_2iwt"></div> <div class="_2iwu"></div> <div class="_2iwv"></div> <div class="_2iww"></div> <div class="_2iwx"></div> <div class="_2iwy"></div> <div class="_2iwz"></div> <div class="_2iw-"></div> <div class="_2iw_"></div> <div class="_2ix0"></div> </div></div>'+
+			'</div>'
+			);
+		
+		$.post(websiteUrl + link_url, {
+			url: link_url
+		}, function(data) {
+			
+			box.html(data);
+			
+			//window.history.pushState({state: 'new'}, '', link_url);
+			window.history.replaceState({state: 'new'}, '', link_url);
+			
+			$("html, body").animate({scrollTop: 0}, 150);
+			
+			$('#SliderMovie').slider();
+			
+			setTimeout(function() {
+				swiper3.update();
+			}, 500);
+		});
+		
+		
+		
+    });
+
+	
+});
+*/
+
+

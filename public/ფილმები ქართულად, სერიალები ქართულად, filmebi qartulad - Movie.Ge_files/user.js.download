@@ -1,0 +1,230 @@
+
+$('#UpdateInfomartion').submit(function(event) {
+	event.preventDefault();
+	var data = $(this).serialize();
+	var _This = $(this);
+	$(this).find('input').removeClass('is-invalid')
+	$(this).find('.is-text-invalid').remove();
+	$(this).find('.message-valid').remove();
+	
+	
+	$.ajax({
+		url: '/update/infomation',
+		type: 'POST',
+		dataType: 'json',
+		data: data,
+	})
+	.done(function(response) {
+		if(response.status=='success'){
+			$(_This).append('<p class="message-valid arial">'+response.message+'</p>');
+			Notify( response.message, 'success');
+		}else{
+			$.each(response.fields, function(index, val) {
+				$(_This).find('input[name="'+ index +'"]').addClass('is-invalid');
+				$('<p class="is-text-invalid arial"> '+ val +' </p>').insertAfter($(_This).find('input[name="'+ index +'"]'));
+			});
+			$(_This).append('<p class="is-text-invalid arial">'+response.message+'</p>');
+		}
+	})
+	.fail(function() {
+		console.log("error");
+	})
+	.always(function() {
+		console.log("complete");
+	});
+	
+	
+});
+
+
+
+$('#resetPassword').submit(function(event) {
+	event.preventDefault();
+	var data = $(this).serialize();
+	var _This = $(this);
+	$(this).find('input').removeClass('is-invalid')
+	$(this).find('.is-text-invalid').remove();
+	$(this).find('.message-valid').remove();
+
+	$.ajax({
+		url: '/update/password',
+		type: 'POST',
+		dataType: 'json',
+		data: data,
+	})
+	.done(function(response) {
+		if(response.status=='success'){
+			$(_This).append('<p class="message-valid arial">'+response.message+'</p>');
+			$(_This).find('input[name="password"]').val("");
+			$(_This).find('input[name="old_password"]').val("");
+			$(_This).find('input[name="password_confirmation"]').val("");
+			Notify( response.message, 'success');
+		}else{
+			$.each(response.fields, function(index, val) {
+				$(_This).find('input[name="'+ index +'"]').addClass('is-invalid');
+				$('<p class="is-text-invalid arial"> '+ val +' </p>').insertAfter($(_This).find('input[name="'+ index +'"]'));
+			});
+			//$(_This).append('<p class="is-text-invalid arial">'+response.message+'</p>');
+		}
+	})
+	.fail(function() {
+		console.log("error");
+	})
+	.always(function() {
+		console.log("complete");
+	});
+	
+	
+});
+
+
+$('#UpdateNotificaion').submit(function(event) {
+	event.preventDefault();
+	var data = $(this).serialize();
+	var _This = $(this);
+	$(this).find('input').removeClass('is-invalid')
+	$(this).find('.is-text-invalid').remove();
+	$(this).find('.message-valid').remove();
+	
+	
+	$.ajax({
+		url: '/update/notifications',
+		type: 'POST',
+		dataType: 'json',
+		data: data,
+	})
+	.done(function(response) {
+		if(response.status=='success'){
+			$(_This).append('<p class="message-valid arial">'+response.message+'</p>');
+			Notify( response.message, 'success');
+		}else{
+			$.each(response.fields, function(index, val) {
+				$(_This).find('input[name="'+ index +'"]').addClass('is-invalid');
+				$('<p class="is-text-invalid arial"> '+ val +' </p>').insertAfter($(_This).find('input[name="'+ index +'"]'));
+			});
+			$(_This).append('<p class="is-text-invalid arial">'+response.message+'</p>');
+		}
+	})
+	.fail(function() {
+		console.log("error");
+	})
+	.always(function() {
+		console.log("complete");
+	});
+	
+	
+});
+
+
+
+$('#changeCover').on('change', function(e) {
+    $('.change_image_error').remove();
+    var file_data = $('#changeCover').prop('files')[0];
+    var validExt = ['jpeg', 'jpg', 'png']
+    var extension = file_data.type.split('/')[1]
+    var form_data = new FormData();
+    form_data.append('file', file_data);
+    if (validExt.indexOf(extension) == -1) {
+		
+        $('<p class="is-text-invalid arial change_image_error">სურათის ფორმატი არასწორია,დაშვებულია : jpeg , jpg ,png </p> ').insertAfter(".user-prof");
+    
+	} else {
+		
+        $.ajax({
+            url: '/profile/changeImage',
+            dataType: 'json',
+            cache: false,
+            contentType: false,
+            processData: false,
+            data: form_data,
+            type: 'post',
+            success: function(response) {
+				if(response.status=='success'){
+					$('.ImageProfile').attr('src', response.thumb);
+					$('.cover-img').attr('src', response.thumb);
+					Notify(response.message, 'success');
+				}
+				
+            }
+        });
+		
+    }
+});
+
+
+$('#changeCoverCollection').on('change', function(e) {
+
+    var coll_id = $(this).data('id');
+    var file_data = $('#changeCoverCollection').prop('files')[0];
+    var form_data = new FormData();
+    form_data.append('file', file_data);
+	
+	
+	
+    $.ajax({
+		url: '/profile/changeImage/'+coll_id,
+		dataType: 'json',
+		cache: false,
+		contentType: false,
+		processData: false,
+		data: form_data,
+		type: 'post',
+		success: function(response) {
+			if(response.status=='success'){
+				$('.CoverCollection').attr('src', response.image);
+				Notify(response.message, 'success');
+			}
+		}
+    });
+
+});
+
+
+
+
+var id_comments = $('#commnets_data').data('id');
+var type_comments = $('#commnets_data').data('type');
+
+if(id_comments){
+	
+	$.post("/profile/load_comments",{id:id_comments,type:type_comments}, function( comments_form ) {
+		$('#commnets_data').html(comments_form);
+	});
+	
+}
+
+$(document).delegate('#subscribe', 'click', function(event) {
+
+	var action = $(this).attr('id');
+	var id = $(this).data('id');
+	var type = $(this).data('type');
+	var _this = $(this);
+
+	$.ajax({
+	url: '/profile/'+action,
+	type: 'POST',
+	dataType: 'json',
+	data: {action:action,id:id,type:type },
+	})
+	.done(function(data) {
+		if (data.status === 'add') {
+			Notify('გამოწერილია.');
+				if( $(_this).hasClass('inner_btn') ){
+				$(_this).addClass('active')
+			}else{
+				$(_this).addClass('subscribed').html('<i class="fas fa-check mr-2"></i>' + data.message)
+			}
+		}else{
+			if($(_this).hasClass('inner_btn')){
+				$(_this).removeClass('active')
+			}else{  
+				$(_this).removeClass('subscribed').html(data.message)
+			}
+		}
+	})
+	.fail(function(error) {
+	var response = error.responseJSON;
+		if( response.errors ) Notify( response.errors,'danger');
+	})
+
+});

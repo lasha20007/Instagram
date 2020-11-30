@@ -1,0 +1,43 @@
+Notify = function(text,style) {
+
+  var time = '100000';
+  var $container = $('#notify');
+  var icon = '<i class="fa fa-info-circle "></i>';
+ 
+  if (typeof style == 'undefined' ) style = 'success'
+  
+  var html = $('<div class="notif_alert notif_' + style + '  hide"><p>'+ text + '</p></div>');
+  
+  $('<a>',{
+    text: '×',
+    class: 'button close',
+    style: 'padding-left: 10px;',
+    href: '#',
+    click: function(e){
+      e.preventDefault()
+      remove_notice()
+    }
+  }).prependTo(html)
+
+  $container.prepend(html)
+  html.removeClass('hide').hide().fadeIn('slow')  
+
+  function remove_notice() {
+    html.stop().fadeOut('slow').remove()
+  }
+  
+  var timer =  setInterval(remove_notice, 3000);
+
+  $(html).hover(function(){
+    clearInterval(timer);
+  }, function(){
+    timer = setInterval(remove_notice, time);
+  });
+  
+  html.on('click', function () {
+    clearInterval(timer)
+    remove_notice()
+  });
+  
+  
+}

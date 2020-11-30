@@ -1,0 +1,297 @@
+$(document).delegate('.ReplayButton', 'click', function(event) {
+
+	var comment_id = $(this).data('id');
+	var form = $('#post_comment').clone().addClass('pl-5');
+	if( ! $(this).hasClass('active') ){
+		form.attr('data-parent-id' , comment_id )
+		if($(this).parents('.subcomment').length){
+			$(this).parents('.subcomment').append(form);
+		}else{
+			$(this).parents('.comment').append(form);
+		}
+	}
+
+	$(this).addClass('active');
+});
+
+
+$(document).delegate('#post_comment', 'submit', function(event) {
+	event.preventDefault();
+
+	var id 			= $(this).data('id');
+	var type 		= $(this).data('type');
+	var parent_id 	= $(this).data('parent-id') ? $(this).data('parent-id') : 0 ;
+	var comment 	= $(this).find('#comment_text').val();
+	var _this 		= $(this);
+	
+	if( $.trim($(_this).find('input[name="comment"]').val()).length > 0 ) {
+
+		$.ajax({
+		  url: '/profile/post_comment',
+		  type: 'POST',
+		  dataType: 'json',
+		  data: {id:id,type:type,parent_id:parent_id,comment:comment},
+		})
+		.done(function(response) {
+			if(response.errors){
+				Notify(response.errors, 'danger');
+			}
+			avatar = !(response.comment.thumb) ? 'https://movie.ge'+response.comment.avatar : response.comment.thumb;
+			$(_this).find('input[name="comment"]').val('');
+			if( ! parent_id ){
+				$('.comments').prepend(
+				'<div class="comment com mt-5">'+
+					'<div class="comment-user mr-3 float-left"><img src="'+ avatar +'" class="cover-img"></div>'+
+					'<div class="text-main arial mb-2 position-relative">'+response.comment.name +' '+ response.comment.surname +
+						'<div class="position-absolute top right">'+
+							'<button class="reply-btn btn p-0 arial-caps text-gray font-size-14 mr-3 ReplayButton" data-action="replay" data-id="'+ response.comment.id +'" title="უპასუხე"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="24" fill="#fff" viewBox="0 0 24 24"> <path d="M12 0c-3.31 0-6.291 1.353-8.459 3.522l-2.48-2.48-1.061 7.341 7.437-.966-2.489-2.488c1.808-1.808 4.299-2.929 7.052-2.929 5.514 0 10 4.486 10 10s-4.486 10-10 10c-3.872 0-7.229-2.216-8.89-5.443l-1.717 1.046c2.012 3.803 6.005 6.397 10.607 6.397 6.627 0 12-5.373 12-12s-5.373-12-12-12z"></path> </svg></button>'+
+							'<button class="like-btn btn arial font-size-14 text-gray p-0 CommentLike" data-action="like" data-id="'+ response.comment.id +'" title="მოწონება">'+
+								'<span class="CommentCount">'+ response.comment.likes +'</span><i class="fa fa-heart"></i>'+
+							'</button>'+
+							'<button class="like-btn btn arial font-size-14 text-gray p-0 EditComment" data-action="edit" data-id="'+ response.comment.id +'"  title="რედაქტირება"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="16" style="fill: #fff;" viewBox="0 0 383.947 383.947" class="ml-1"> <g> <g> <g> <polygon points="0,303.947 0,383.947 80,383.947 316.053,147.893 236.053,67.893    "/> <path d="M377.707,56.053L327.893,6.24c-8.32-8.32-21.867-8.32-30.187,0l-39.04,39.04l80,80l39.04-39.04     C386.027,77.92,386.027,64.373,377.707,56.053z"/> </g> </g> </g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> </svg></button>'+
+							'<button class="like-btn btn arial font-size-14 text-gray p-0 DeleteComment " data-action="delete" data-id="'+ response.comment.id +'"  title="წაშლა"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="16" viewBox="0 0 384 384" style="fill: #fff;" class="ml-1"> <g> <g> <g> <path d="M64,341.333C64,364.907,83.093,384,106.667,384h170.667C300.907,384,320,364.907,320,341.333v-256H64V341.333z"/> <polygon points="266.667,21.333 245.333,0 138.667,0 117.333,21.333 42.667,21.333 42.667,64 341.333,64 341.333,21.333    "/> </g> </g> </g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> </svg></button>'+
+						'</div>'+
+					'</div>'+
+					'<p class="text-gray text-break CommentText" data-id="'+ response.comment.id +'">'+ response.comment.comment +'</p>'+
+					'<div class="clearfix"></div>'+
+				'</div>');
+			}else{
+
+				var CommModel = $(_this).parent('subcomment.com').length ? $(_this).parents('.subcomment.com').find('.wrapp_subcommnet') : $(_this).parents('.com').find('.wrapp_subcommnet');
+				$(CommModel[0]).append(
+				'<div class="subcomments com pl-5" data-parent-id="'+ response.comment.parent_id +'">'+
+					'<div class="comment-user mr-3 float-left"><img src="'+ avatar +'" class="cover-img"></div>'+
+					'<div class="text-main arial mb-2 position-relative">'+response.comment.name +' '+ response.comment.surname +
+						'<div class="position-absolute top right">'+
+							'<button class="reply-btn btn p-0 arial-caps text-gray font-size-14 mr-3 ReplayButton" data-action="replay" data-id="'+ response.comment.id +'" title="უპასუხე"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="24" fill="#fff" viewBox="0 0 24 24"> <path d="M12 0c-3.31 0-6.291 1.353-8.459 3.522l-2.48-2.48-1.061 7.341 7.437-.966-2.489-2.488c1.808-1.808 4.299-2.929 7.052-2.929 5.514 0 10 4.486 10 10s-4.486 10-10 10c-3.872 0-7.229-2.216-8.89-5.443l-1.717 1.046c2.012 3.803 6.005 6.397 10.607 6.397 6.627 0 12-5.373 12-12s-5.373-12-12-12z"></path> </svg></button>'+
+							'<button class="like-btn btn arial font-size-14 text-gray p-0 CommentLike" data-action="like" data-id="'+ response.comment.id +'" title="მოწონება">'+
+								'<span class="CommentCount">'+ response.comment.likes +'</span><i class="fa fa-heart"></i>'+
+							'</button>'+
+							'<button class="like-btn btn arial font-size-14 text-gray p-0 EditComment" data-action="edit" data-id="'+ response.comment.id +'"  title="რედაქტირება"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="16" style="fill: #fff;" viewBox="0 0 383.947 383.947" class="ml-1"> <g> <g> <g> <polygon points="0,303.947 0,383.947 80,383.947 316.053,147.893 236.053,67.893    "/> <path d="M377.707,56.053L327.893,6.24c-8.32-8.32-21.867-8.32-30.187,0l-39.04,39.04l80,80l39.04-39.04     C386.027,77.92,386.027,64.373,377.707,56.053z"/> </g> </g> </g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> </svg></button>'+
+							'<button class="like-btn btn arial font-size-14 text-gray p-0 DeleteComment " data-action="delete" data-id="'+ response.comment.id +'"  title="წაშლა"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="16" viewBox="0 0 384 384" style="fill: #fff;" class="ml-1"> <g> <g> <g> <path d="M64,341.333C64,364.907,83.093,384,106.667,384h170.667C300.907,384,320,364.907,320,341.333v-256H64V341.333z"/> <polygon points="266.667,21.333 245.333,0 138.667,0 117.333,21.333 42.667,21.333 42.667,64 341.333,64 341.333,21.333    "/> </g> </g> </g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> <g></g> </svg></button>'+
+						'</div>'+
+					'</div>'+
+					'<p class="text-gray text-break CommentText" data-id="'+ response.comment.id +'">'+ response.comment.comment +'</p>'+
+					'<div class="clearfix"></div>'+
+				'</div>');
+			}
+			if( $(_this).parents('.wrapp_subcommnet').length ){
+				$(_this).remove();
+			}
+		})
+		
+		
+	}
+});
+
+
+$(document).delegate('.EditComment', 'click', function(event) {
+	var comment_id = $(this).data('id');
+	var action = $(this).data('action');
+	var _this = $(this);
+	
+	$.ajax({
+		url: '/profile/post_comment',
+		type: 'POST',
+		dataType: 'json',
+		data: {id:comment_id,action:action},
+	})
+	.done(function(data) {
+		if(data.errors){
+			Notify(data.errors, 'danger');
+		}
+		var data = data.comment
+		$('.edit-comment-overlay').addClass('show');
+		$('#notify').html(
+			'<div class="edit-comment-overlay justify-content-center align-items-center show">'+
+				'<div class="collection-pop-in rounded-10">'+
+					'<button class="back-btn cancel-btn-alt btn text-gray d-md-none" title="უკან დაბრუნება">'+
+						'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="10" viewBox="0 0 16 10"> <g> <g> <g> <path fill="#adb5bd" d="M15.42 4.302H2.382l3.111-3.111a.697.697 0 1 0-.986-.987L.204 4.507a.697.697 0 0 0 0 .986l4.303 4.303a.695.695 0 0 0 .986 0 .697.697 0 0 0 0-.987L2.382 5.698H15.42a.698.698 0 0 0 0-1.396z"></path> </g> </g> </g> </svg>'+
+					'</button>'+
+					'<form class="d-flex flex-column align-items-end" id="ChangeNameCommnet" data-action="edit" method="post" autocomplete="off">'+
+						'<div class="flex-grow-1"></div>'+
+						'<input class="authorization-input mb-5 font-size-14 arial text-gray rounded-10 w-100" name="comment">'+
+						'<div class="coll-pop-btns">'+
+							'<div class="cancel-btn-alt btn rounded-10 arial font-size-14 text-gray mr-3 pt-2 CloseCommnetEditName" title="უარყოფა">დახურვა</div>'+
+							'<button class="save-btn btn btn-primary rounded-38 arial font-size-14 text-main " title="დამახსოვრება" type="submit">დამახსოვრება</button>'+
+						'</div>'+
+						'<div class="flex-grow-1"></div>'+
+					'</form>'+
+				'</div>'+
+			'</div>'
+		);
+		var form =$('.edit-comment-overlay').find('form'); 
+		form.data('id' , comment_id );
+		form.find('input[name="comment"]').val(data);
+	})
+  
+});
+
+
+
+$(document).delegate('#ChangeNameCommnet', 'submit', function(event) {
+	event.preventDefault();
+	var id = $(this).data('id');
+	var action = $(this).data('action');
+	var comment = $(this).find('input[name="comment"]').val();
+
+	$.ajax({
+		
+		url: '/profile/post_comment',
+		type: 'POST',
+		dataType: 'json',
+		data: {id:id,action:action,comment:comment},
+		
+	}).done(function(data){
+		
+		$('.CommentText[data-id='+ id +']').html(comment)
+		$('#notify').html('');
+		Notify(data.msg);
+		
+	})
+  
+});
+
+
+$(document).delegate('.CloseCommnetEditName', 'click', function(event) {
+	$('#notify').html('');
+});
+
+
+
+$(document).delegate('.DeleteComment', 'click', function(event) {
+	var comment_id = $(this).data('id');
+	var action = $(this).data('action');
+	var _this = $(this);
+
+	$.ajax({
+		url: '/profile/post_comment',
+		type: 'POST',
+		dataType: 'json',
+		data: {id:comment_id,action:action},
+	})
+	.done(function(data) {
+		$(_this).parents('.com').first().remove();
+		Notify(data.msg);
+	})
+
+});
+
+
+
+
+$(document).delegate('.CommentLike', 'click', function(event) {
+	var comment_id = $(this).data('id');
+	var action = $(this).data('action');
+	var _this = $(this);
+
+	$.ajax({
+		url: '/profile/post_comment',
+		type: 'POST',
+		dataType: 'json',
+		data: {id:comment_id,action:action},
+	})
+	.done(function(data) {
+		
+		if(data.errors){
+			Notify(data.errors, 'danger');
+			$(_this).removeClass('active')
+			$(_this).find('.CommentCount').addClass('active').html(data.comment.likes)
+		}else{
+			Notify(data.msg);
+			$(_this).addClass('active')
+			$(_this).find('.CommentCount').addClass('active').html(data.comment.likes)
+		}
+	})
+	
+});
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+$(document).delegate( '.rtl_rt'  , 'click' , function () {
+    
+	$(this).parent('div').toggleClass('active')
+	$(this).next('.dropdown-menu').toggleClass('toggle20')
+
+})
+
+var stepCommnet = 0;
+
+$('.LoadBatton').click(function(event) {
+  var id = $(this).data('id');
+  var _this = $(this);
+  stepCommnet+=10;
+
+  $.ajax({
+    url: '/load/comment',
+    type: 'POST',
+    dataType: 'json',
+    data: {id: id,
+    step: stepCommnet, "_token" : token },
+  })
+  .done(function(data) {
+    var html = data.html;
+    var status = data.status;
+    if(status){
+      $('.comments').append(html)
+      // $(html).insertBefore($(this))
+    }
+
+    if( ! status ) $(_this).remove();
+  })
+  
+});
+
+
+
+
+
+
+
+
+
+
+
+$('.refreshCaptcha').click(function(event) {
+
+  $.ajax({
+    url: '/refereshcapcha',
+    type: 'GET',
+    dataType: 'html',
+    data: {'_token' : token },
+  })
+  .done(function(data) {
+    $('.wrapp_captcha img').remove();
+      $('.wrapp_captcha').prepend(data);
+  })
+  .fail(function() {
+    console.log("error");
+  })
+  .always(function() {
+    console.log("complete");
+  });
+  
+
+
+});
+
+
+
+
+$('.popup_warning_info .closeBtn').click(function(event) {
+  $(this).parents('.popup_warning_info').remove();
+});
+
+*/
+
+	

@@ -1,0 +1,491 @@
+
+    (function(){
+		
+        $.fn.slider = function () {
+
+            // $(SliderImage).attr('src' , Image )
+                let movie_slide = $('.movie_slide_ithem');
+                let movie_slide_length = $('.movie_slide_ithem').length;
+                var ActiveSlideIndex = 0;
+                var TimerSlide = 7000;
+                var counterUpdated = 0;
+                var _this = $(this);
+
+                $.each(movie_slide, function(index, element) {
+                    $(element).attr('data-index', index );
+                });
+
+            resizeSlide();
+            let updateSlide = function () { resizeSlide(); }
+
+
+            $('.InfoWrappSlider').click(function(e){
+                if(e.target.tagName === 'BUTTON') return false;
+                
+                window.location.href = $(this).data('href');
+            });
+
+           var UpdateDataSlide = setInterval(updateSlide , TimerSlide);
+
+           $('._slider_wrap').hover(function(e){
+               clearInterval(UpdateDataSlide);
+           },function(e){
+            UpdateDataSlide = setInterval(updateSlide , TimerSlide);
+           });
+
+
+            $(movie_slide).click(function(e){
+                if(e.target.tagName === 'DIV'){
+                  e.preventDefault();
+
+                  $(".SliderImage").addClass("load");
+                  // clearInterval(UpdateDataSlide);
+                  $(movie_slide).removeClass('active');
+                  $(this).addClass('active');
+                  ActiveSlideIndex = parseInt($(this).data('index'));
+                  resizeSlide();
+                }
+
+            });
+
+
+            function resizeSlide () {
+				
+                let ActiveSlide = $(movie_slide[ActiveSlideIndex]);
+                let SliderImage =$('.SliderImage');
+                let SliderIframe =$('.SliderIframe');
+                let SlidetTitle =$('.SlidetTitle');
+                let SliderImdb =$('.SliderImdb');
+                let SlideLink =$('.SlideLink');
+                let addWatching = $('.SlideAddWatching');
+                let GeneresMovie = $('.GeneresMovie');
+                let Image = $(ActiveSlide).attr('data-img');
+                let Iframe = $(ActiveSlide).attr('data-iframe');
+                let Type = $(ActiveSlide).attr('data-type');
+                let Title = $(ActiveSlide).data('title');
+                let Imdb = $(ActiveSlide).data('imdb');
+                let Genres = $(ActiveSlide).data('genres');
+                let Uid = $(ActiveSlide).data('uid');
+                let Link = $(ActiveSlide).data('link');
+                // let is_watch = $(ActiveSlide).data('is_watch');
+                // let StatusWatching = $(ActiveSlide).data('watching');
+                $(movie_slide).removeClass('active')
+
+                $(movie_slide[ActiveSlideIndex]).addClass('active')
+                if($(movie_slide[ActiveSlideIndex]).has('active')){
+					
+					if(Type=='iframe'){
+						
+						
+						$('.InfoWrappSlider').addClass('hidden');
+						$('.movie-overlay').addClass('iframe_movie_overlay');
+						$('.slideritems').removeClass('col-md-6');
+						$('.main-overlay').removeClass('overlay');
+						
+						$(SliderIframe).attr('src',Iframe).css('display','block');
+						
+					}else{
+						
+						
+						$('.main-overlay').addClass('overlay');
+						$('.slideritems').addClass('col-md-6');
+						$('.movie-overlay').removeClass('iframe_movie_overlay');
+						$('.InfoWrappSlider').removeClass('hidden');
+						
+						$(SliderIframe).attr('src','').css('display','none');
+						
+						
+						$(SlidetTitle).html(Title);
+						$(SliderImage).attr('src',Image);
+						$(SliderImdb).html(Imdb);
+						$(GeneresMovie).html(Genres);
+						$(SlideLink).attr( 'href' ,Link);
+						$('.InfoWrappSlider').attr( 'data-href' ,Link);
+						
+					}
+                }
+
+                if( ActiveSlideIndex < movie_slide_length-1 ){
+					ActiveSlideIndex+=1;
+				}else if( ActiveSlideIndex >= movie_slide_length-1 ){
+					ActiveSlideIndex = 0;
+				}
+
+            }
+
+
+
+        }
+		
+        $('#SliderMovie').slider();
+
+    }());
+	
+	
+
+
+var keep = new Swiper('#keep', {
+    init: function() {
+        console.log(this, '__keep')
+    },
+    slidesPerView: 4,
+    slidesPerGroup: 2,
+    spaceBetween: 20,
+    lazy: true,
+    freeMode: true,
+    breakpoints: {
+        1440: {
+            slidesPerView: 3,
+            slidesPerGroup: 1,
+
+        },
+        1024: {
+            slidesPerView: 3,
+            slidesPerGroup: 1,
+
+        },
+        768: {
+            slidesPerView: 3,
+            slidesPerGroup: 1,
+        },
+        460: {
+            slidesPerView: 1,
+            slidesPerGroup: 1,
+        },
+    },
+    pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+    },
+    navigation: {
+        nextEl: '.r2',
+        prevEl: '.l2',
+    },
+});
+
+var slide_swiper = new Swiper('#latest_geomovies .slider', {
+    slidesPerView: 6,
+    slidesPerGroup: 4,
+    spaceBetween: 20,
+    lazy: true,
+    freeMode: true,
+    breakpoints: {
+        3660: {
+            slidesPerView: 8,
+            slidesPerGroup: 8,
+
+        },
+		2660: {
+            slidesPerView: 7,
+            slidesPerGroup: 7,
+
+        },
+		2090: {
+            slidesPerView: 6,
+            slidesPerGroup: 6,
+
+        },
+		1660: {
+            slidesPerView: 5,
+            slidesPerGroup: 5,
+
+        },
+        1440: {
+            slidesPerView: 5,
+            slidesPerGroup: 5,
+
+        },
+		1300: {
+            slidesPerView: 4,
+            slidesPerGroup: 4,
+
+        },
+        1024: {
+            slidesPerView: 4,
+            slidesPerGroup: 4,
+
+        },
+        768: {
+            slidesPerView: 3,
+            slidesPerGroup: 1,
+        },
+        460: {
+            slidesPerView: 2,
+            slidesPerGroup: 1,
+        },
+    },
+
+    navigation: {
+        nextEl: '#latest_geomovies .r1',
+        prevEl: '#latest_geomovies .l1',
+    },
+});
+
+
+
+new Swiper('#latest_geoserials .slider', {
+    slidesPerView: 6,
+    slidesPerGroup: 6,
+    spaceBetween: 20,
+    lazy: true,
+    freeMode: true,
+    breakpoints: {
+        3660: {
+            slidesPerView: 8,
+            slidesPerGroup: 8,
+
+        },
+		2660: {
+            slidesPerView: 7,
+            slidesPerGroup: 7,
+
+        },
+		2090: {
+            slidesPerView: 6,
+            slidesPerGroup: 6,
+
+        },
+		1660: {
+            slidesPerView: 5,
+            slidesPerGroup: 5,
+
+        },
+        1440: {
+            slidesPerView: 5,
+            slidesPerGroup: 5,
+
+        },
+		1300: {
+            slidesPerView: 4,
+            slidesPerGroup: 4,
+
+        },
+        1024: {
+            slidesPerView: 4,
+            slidesPerGroup: 4,
+
+        },
+        768: {
+            slidesPerView: 3,
+            slidesPerGroup: 1,
+        },
+        460: {
+            slidesPerView: 2,
+            slidesPerGroup: 1,
+        },
+    },
+	
+    navigation: {
+        nextEl: '#latest_geoserials .r1',
+        prevEl: '#latest_geoserials .l1',
+    },
+});
+
+
+
+new Swiper('#latest_dubbed .slider', {
+    slidesPerView: 6,
+    slidesPerGroup: 4,
+    spaceBetween: 20,
+    lazy: true,
+    freeMode: true,
+    breakpoints: {
+        3660: {
+            slidesPerView: 8,
+            slidesPerGroup: 8,
+
+        },
+		2660: {
+            slidesPerView: 7,
+            slidesPerGroup: 7,
+
+        },
+		2090: {
+            slidesPerView: 6,
+            slidesPerGroup: 6,
+
+        },
+		1660: {
+            slidesPerView: 5,
+            slidesPerGroup: 5,
+
+        },
+        1440: {
+            slidesPerView: 5,
+            slidesPerGroup: 5,
+
+        },
+		1300: {
+            slidesPerView: 4,
+            slidesPerGroup: 4,
+
+        },
+        1024: {
+            slidesPerView: 4,
+            slidesPerGroup: 4,
+
+        },
+        768: {
+            slidesPerView: 3,
+            slidesPerGroup: 1,
+        },
+        460: {
+            slidesPerView: 2,
+            slidesPerGroup: 1,
+        },
+    },
+	
+    navigation: {
+        nextEl: '#latest_dubbed .r1',
+        prevEl: '#latest_dubbed .l1',
+    },
+});
+
+
+
+new Swiper('#latest_turkish .slider', {
+    slidesPerView: 6,
+    slidesPerGroup: 4,
+    spaceBetween: 20,
+    lazy: true,
+    freeMode: true,
+    breakpoints: {
+        3660: {
+            slidesPerView: 8,
+            slidesPerGroup: 8,
+
+        },
+		2660: {
+            slidesPerView: 7,
+            slidesPerGroup: 7,
+
+        },
+		2090: {
+            slidesPerView: 6,
+            slidesPerGroup: 6,
+
+        },
+		1660: {
+            slidesPerView: 5,
+            slidesPerGroup: 5,
+
+        },
+        1440: {
+            slidesPerView: 5,
+            slidesPerGroup: 5,
+
+        },
+		1300: {
+            slidesPerView: 4,
+            slidesPerGroup: 4,
+
+        },
+        1024: {
+            slidesPerView: 4,
+            slidesPerGroup: 4,
+
+        },
+        768: {
+            slidesPerView: 3,
+            slidesPerGroup: 1,
+        },
+        460: {
+            slidesPerView: 2,
+            slidesPerGroup: 1,
+        },
+    },
+	
+    navigation: {
+        nextEl: '#latest_turkish .r1',
+        prevEl: '#latest_turkish .l1',
+    },
+});
+
+
+var swiper3 = new Swiper('#actors', {
+    slidesPerView: 13,
+    slidesPerGroup: 2,
+    spaceBetween: 20,
+    lazy: true,
+	preloadImages:false,
+    breakpoints: {
+        1660: {
+            slidesPerView: 10,
+            slidesPerGroup: 3,
+
+        },
+        1440: {
+            slidesPerView: 8,
+            slidesPerGroup: 3,
+
+        },
+        1024: {
+            slidesPerView: 7,
+            slidesPerGroup: 1,
+
+        },
+        768: {
+            slidesPerView: 6,
+            slidesPerGroup: 1,
+        },
+        460: {
+            slidesPerView: 3,
+            slidesPerGroup: 1,
+        },
+    },
+    pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+    },
+    navigation: {
+        nextEl: '.r3',
+        prevEl: '.l3',
+    },
+});
+
+
+
+
+new Swiper('.related', {
+    slidesPerView: 2,
+    slidesPerGroup: 2,
+    slidesPerColumn: 2,
+    spaceBetween: 20,
+    lazy: true,
+    freeMode: true,
+    breakpoints: {
+        1660: {
+            slidesPerView: 2,
+            slidesPerGroup: 2,
+            slidesPerColumn: 2,
+        },
+        1440: {
+            slidesPerView: 2,
+            slidesPerGroup: 2,
+            slidesPerColumn: 2,
+        },
+        1024: {
+            slidesPerView: 2,
+            slidesPerGroup: 2,
+            slidesPerColumn: 2,
+        },
+        768: {
+            slidesPerView: 2,
+            slidesPerGroup: 1,
+            slidesPerColumn: 2,
+        },
+        460: {
+            slidesPerView: 2,
+            slidesPerGroup: 1,
+            slidesPerColumn: 2,
+        },
+    },
+    pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+    },
+    navigation: {
+        nextEl: '.r4',
+        prevEl: '.l4',
+    }
+});
