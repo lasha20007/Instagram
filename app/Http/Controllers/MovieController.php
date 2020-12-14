@@ -48,25 +48,23 @@ class MovieController extends Controller
 
     public function genre_to_movie(Request $request)
     {
-        if(isset($_POST['genre'])) {
-            $genres = $_POST['genre'];
-
             $movie_id = Movie::where('title_geo', $request->input('movie'))->firstOrFail()->id;
+            $genres = $request->input('genre');
 
             foreach ($genres as $genre) {
                 $genre_id = Genre::where('genre', $genre)->firstOrFail()->id;
 
-                MovieGenre::create([
+            MovieGenre::create([
                     "movie_id"=>$movie_id,
                     "genre_id"=>$genre_id
                 ]);
-            }
+        
+        }
 
             return "
         <div style='text-align: center;'>
         <h1>ჟანრები წარმატებით დაუკავშირდა ფილმს</h1> <a href='/admin/main'>საწყისზე დაბრუნება</a>
         </div>";
-        }
 
         return "
         <div style='text-align: center;'>
